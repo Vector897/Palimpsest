@@ -31,7 +31,14 @@ def _resolve_db_url() -> str:
         url = f.read_text(encoding="utf-8").strip()
         if sslmode := os.environ.get("PALIMPSEST_DB_SSLMODE"):
             url = url.replace("sslmode=verify-full", f"sslmode={sslmode}")
-        return url + ("&" if "?" in url else "?") + "connect_timeout=10"
+        url += ("&" if "?" in url else "?") + "connect_timeout=10"
+        # CockroachDB Cloud serves Let's Encrypt certs; full verification works
+        # against the certifi bundle (OpenSSL's default store is empty on Windows)
+        if "sslmode=verify-full" in url and "sslrootcert" not in url:
+            import certifi
+
+            url += "&sslrootcert=" + certifi.where()
+        return url
     raise RuntimeError(
         "No database URL: set PALIMPSEST_DB_URL or place a .crdb-connection file "
         "in the project directory."

@@ -10,6 +10,7 @@ dependencies = [
     "mcp>=1.0",
     "boto3>=1.34",
     "anthropic[bedrock]>=0.60",
+    "certifi",
     "pydantic>=2.7",
 ]
 
