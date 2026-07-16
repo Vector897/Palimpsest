@@ -43,6 +43,8 @@ CONSOLIDATE_PROMPT = """\
 Below are work-log fragments from an AI agent over the last 24 hours.
 Extract 1-5 facts or patterns worth remembering long-term (stable user
 preferences, recurring themes, decisions that will matter later).
+Preserve concrete technical terms (method names, domains, topics) verbatim —
+abstractions like "advanced techniques" lose the signal retrieval needs.
 One per line, conclusions only, no numbering:
 
 {episodes}"""
