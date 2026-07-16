@@ -5,7 +5,7 @@ Run from the repo root (or project root containing .crdb-connection):
     python tests/smoke_e2e.py
 
 Exercises: schema apply, episodic writes with real Titan embeddings,
-two-stage vector retrieval, consolidation via Claude on Bedrock,
+two-stage vector retrieval, consolidation via Bedrock LLM,
 arbitration layering, decay, checkpoints, and the audit trail.
 Uses a throwaway owner_id and cleans up after itself.
 """
@@ -42,7 +42,7 @@ def main() -> None:
     print(f"3. retrieval: {len(hits)} hits, best dist={hits[0].distance:.4f}: {hits[0].content[:60]}")
 
     facts = eng.consolidate(OWNER)
-    print(f"4. consolidation via Claude on Bedrock: {facts} semantic facts distilled")
+    print(f"4. consolidation via Bedrock LLM: {facts} semantic facts distilled")
 
     sem = conn.execute(
         "SELECT id, content FROM memories WHERE owner_id=%s AND kind='semantic' AND archived=false LIMIT 1",

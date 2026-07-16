@@ -46,8 +46,10 @@ class Settings:
         "PALIMPSEST_EMBED_MODEL", "amazon.titan-embed-text-v2:0"
     )
     embed_dimensions: int = int(os.environ.get("PALIMPSEST_EMBED_DIM", "1024"))
+    # "anthropic.claude-opus-4-8" once the account has Anthropic-model entitlement;
+    # Amazon Nova is auto-enabled on new accounts and handles these short prompts well
     llm_model_id: str = os.environ.get(
-        "PALIMPSEST_LLM_MODEL", "anthropic.claude-opus-4-8"
+        "PALIMPSEST_LLM_MODEL", "us.amazon.nova-pro-v1:0"
     )
     # cosine-distance bands for conflict detection during consolidation
     duplicate_below: float = 0.10   # closer than this → same fact, just reinforce

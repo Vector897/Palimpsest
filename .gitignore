@@ -1,13 +1,3 @@
-# ================================================================
-# 本地维护区 —— 永不上传 GitHub(规则见 项目生命周期维护规则/规则.md §A)
-# Local-only maintenance area — never uploaded. See local rules.
-# ================================================================
-CLAUDE.md
-会话交接/
-项目生命周期维护规则/
-本地维护/
-临时过渡文件_用后即删/
-
 # secrets — never commit connection strings or credentials
 .crdb-connection
 .env
