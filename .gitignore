@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+*.egg-info/
+dist/
+.pytest_cache/
+.ruff_cache/
+# secrets — never commit connection strings or AWS creds
+*.pem
+.crdb-connection
