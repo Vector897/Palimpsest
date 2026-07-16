@@ -1,5 +1,6 @@
 -- Palimpsest schema — CockroachDB
--- DRAFT: vector-index syntax and prefix-column support to be verified in the free-tier spike.
+-- Verified 2026-07-16 against CockroachDB Cloud Basic (v26.2.1): VECTOR(1024),
+-- prefix-column vector index, cosine ANN, and EXPLAIN-confirmed index usage all work.
 -- Requires: SET CLUSTER SETTING feature.vector_index.enabled = true;
 
 CREATE TABLE IF NOT EXISTS memories (
