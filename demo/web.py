@@ -15,7 +15,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-import uvicorn  # noqa: E402
 from fastapi import FastAPI  # noqa: E402
 from fastapi.responses import FileResponse, JSONResponse  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
@@ -144,4 +143,6 @@ def layers(memory_id: str) -> JSONResponse:
 
 
 if __name__ == "__main__":
+    import uvicorn
+
     uvicorn.run(app, host="127.0.0.1", port=8777)

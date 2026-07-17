@@ -1,0 +1,6 @@
+# Vercel deployment requirements (the library itself installs via pyproject.toml)
+psycopg[binary]>=3.2
+boto3>=1.34
+certifi
+pydantic>=2.7
+fastapi>=0.110

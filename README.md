@@ -16,15 +16,39 @@ Built for the [CockroachDB × AWS Hackathon](https://cockroachdb-ai.devpost.com/
 
 ## Architecture
 
-```
- any agent ──MCP──▶ Palimpsest server ──▶ CockroachDB Cloud
-                       │                    ├─ memories (VECTOR INDEX, cosine)
-                       │                    ├─ checkpoints
-                       ▲                    └─ audit_log
-                       │
- AWS Lambda (EventBridge nightly) ── consolidation / arbitration / decay
-                       │
- Amazon Bedrock ── Titan embeddings + LLM for consolidation
+```mermaid
+flowchart LR
+    subgraph agents [Any MCP-capable agent]
+        A1[Claude Code]
+        A2[LangGraph / custom loop]
+        A3[Demo: paper-triage agent]
+    end
+
+    subgraph pal [Palimpsest]
+        MCPS["MCP server (stdio)<br>memory_write / retrieve / reflect<br>checkpoint_save / load"]
+        ENG["Memory engine<br>consolidate · arbitrate · decay"]
+    end
+
+    subgraph crdb [CockroachDB Cloud]
+        MEM[("memories<br>VECTOR 1024 + prefix vector index<br>supersedes lineage")]
+        CKPT[("checkpoints")]
+        AUD[("audit_log")]
+    end
+
+    subgraph aws [AWS]
+        BR["Amazon Bedrock<br>Titan embeddings · Nova/Claude"]
+        LAM["Lambda + EventBridge<br>nightly consolidation"]
+    end
+
+    CMCP["CockroachDB Cloud managed MCP<br>read-only OAuth introspection"]
+
+    A1 & A2 & A3 --> MCPS --> ENG
+    ENG <--> MEM
+    ENG <--> CKPT
+    ENG <--> AUD
+    ENG --> BR
+    LAM --> ENG
+    A1 -. introspects .-> CMCP -.-> crdb
 ```
 
 ## Quickstart
