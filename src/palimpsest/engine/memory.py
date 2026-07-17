@@ -43,8 +43,10 @@ CONSOLIDATE_PROMPT = """\
 Below are work-log fragments from an AI agent over the last 24 hours.
 Extract 1-5 facts or patterns worth remembering long-term (stable user
 preferences, recurring themes, decisions that will matter later).
-Preserve concrete technical terms (method names, domains, topics) verbatim —
-abstractions like "advanced techniques" lose the signal retrieval needs.
+State each interest at the level of its TOPIC or DOMAIN so future items in the
+same domain will match — e.g. "interested in databases", "interested in
+programming-language and developer-tooling updates" — while keeping the concrete
+example that supports it. Avoid vague abstractions like "advanced techniques".
 One per line, conclusions only, no numbering:
 
 {episodes}"""

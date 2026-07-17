@@ -32,12 +32,12 @@ def main() -> None:
 
     eng = MemoryEngine(conn)
 
-    eng.write_episodic(OWNER, "User marked the paper '[redacted]' as important.", "triage")
-    eng.write_episodic(OWNER, "User ignored three survey papers about general [redacted].", "triage")
-    eng.write_episodic(OWNER, "User marked a paper on [redacted] as important.", "triage")
+    eng.write_episodic(OWNER, "Reader marked a story about Postgres async I/O as important.", "triage")
+    eng.write_episodic(OWNER, "Reader ignored a roundup of the year's best productivity apps.", "triage")
+    eng.write_episodic(OWNER, "Reader marked a story about Rust async traits as important.", "triage")
     print("2. wrote 3 episodic memories (real Titan embeddings)")
 
-    hits = eng.retrieve(OWNER, "which papers does the user care about?")
+    hits = eng.retrieve(OWNER, "which topics does the reader care about?")
     assert hits, "retrieval returned nothing"
     print(f"3. retrieval: {len(hits)} hits, best dist={hits[0].distance:.4f}: {hits[0].content[:60]}")
 
@@ -50,7 +50,7 @@ def main() -> None:
     ).fetchone()
     if sem:
         new_id = eng.arbitrate(OWNER, str(sem[0]), sem[1],
-                               "The user now prioritizes deployment papers over theory.")
+                               "The reader now prioritizes managed cloud services over self-hosted tooling.")
         chain = eng.layers(new_id)
         assert len(chain) >= 2 and chain[1]["archived"], "palimpsest layering failed"
         print(f"5. arbitration: new layer over old, chain depth={len(chain)}, old layer archived but readable")

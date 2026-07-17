@@ -21,7 +21,7 @@ flowchart LR
     subgraph agents [Any MCP-capable agent]
         A1[Claude Code]
         A2[LangGraph / custom loop]
-        A3[Demo: paper-triage agent]
+        A3[Demo: news-triage agent]
     end
 
     subgraph pal [Palimpsest]

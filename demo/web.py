@@ -126,7 +126,7 @@ def feedback(req: FeedbackReq) -> JSONResponse:
     title, abstract = PAPERS[req.day][req.paper - 1]
     e.write_episodic(
         OWNER,
-        f"User marked the paper '{title}' as {req.verdict}. (Abstract: {abstract[:120]})",
+        f"Reader marked the story '{title}' as {req.verdict}. (Summary: {abstract[:120]})",
         tags=f"feedback,{req.verdict}",
     )
     return JSONResponse({"ok": True})

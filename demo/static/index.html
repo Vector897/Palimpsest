@@ -95,11 +95,11 @@
 
 <main>
   <section id="briefing">
-    <h2>Morning briefing — paper triage</h2>
+    <h2>Morning briefing — news triage</h2>
     <div class="toolbar">
       <button id="run1">Run Day 1</button>
       <button id="run2">Run Day 2</button>
-      <button id="crash" class="danger" title="Kill the agent after 2 papers, mid-task">Run Day 2 + crash</button>
+      <button id="crash" class="danger" title="Kill the agent after 2 stories, mid-task">Run Day 2 + crash</button>
       <button id="night" class="secondary" title="Same code path as the AWS Lambda">Nightly consolidation</button>
     </div>
     <p id="crashBanner" class="banner crash hidden">✕ Agent killed mid-run — memory &amp; progress are safe in CockroachDB. Run Day 2 again to recover.</p>
@@ -186,7 +186,7 @@ async function runMorning(day, crashAfter){
     if (r.crashed) $('#crashBanner').classList.remove('hidden');
     if (r.recovered){
       const b=$('#recoverBanner');
-      b.textContent = `✓ Recovered from checkpoint — resumed at paper ${r.resumed_at}; earlier decisions loaded from CockroachDB, no tokens re-spent.`;
+      b.textContent = `✓ Recovered from checkpoint — resumed at story ${r.resumed_at}; earlier decisions loaded from CockroachDB, no tokens re-spent.`;
       b.classList.remove('hidden');
     }
   } finally {

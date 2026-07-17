@@ -1,4 +1,6 @@
-"""Demo agent: a morning paper-triage assistant with Palimpsest memory.
+"""Demo agent: a morning news-briefing agent with Palimpsest memory.
+
+It triages tech-news headlines for one reader, learning what they care about.
 
 A day in the life:
 
@@ -28,51 +30,58 @@ from palimpsest.db import apply_schema, connect  # noqa: E402
 from palimpsest.engine import checkpoints  # noqa: E402
 from palimpsest.engine.memory import MemoryEngine  # noqa: E402
 
-OWNER = "demo-triage"
+OWNER = "demo-news"
 
+# Neutral tech-news headlines. The reader (revealed through feedback) follows
+# database and developer-tooling news and ignores roundups, listicles, and
+# off-topic consumer stories.
 PAPERS = {
     1: [
-        ("[redacted title]",
-         "[redacted summary]"),
-        ("[redacted title]",
-         "[redacted summary]"),
-        ("Diffusion Models for Protein Folding",
-         "We apply score-based diffusion to protein structure prediction."),
-        ("[redacted title]",
-         "[redacted summary]"),
-        ("Quantum Error Correction with Neural Decoders",
-         "Neural network decoders for surface codes at scale."),
-        ("Prompt Engineering Best Practices: an Empirical Study",
-         "A survey of prompting techniques across 12 LLM families."),
+        ("Postgres 18 ships asynchronous I/O for sequential scans",
+         "The release adds async I/O, cutting latency on large analytical table scans."),
+        ("The 25 best productivity apps of the year",
+         "A ranked roundup of note-taking, calendar, and to-do apps across platforms."),
+        ("Streaming service raises monthly subscription prices again",
+         "The consumer platform announced a price hike alongside a new ad-supported tier."),
+        ("Rust 1.85 stabilizes async functions in traits",
+         "Long-awaited async-fn-in-trait support lands, simplifying async library design."),
+        ("Titanium smartwatch unveiled with a three-day battery",
+         "A hardware maker showed its new flagship wearable at an autumn launch event."),
+        ("A roundup of every cloud announcement this month",
+         "A monthly digest summarizing dozens of vendor announcements in a single post."),
     ],
     2: [
-        ("[redacted title]",
-         "[redacted summary]"),
-        ("A Survey of Vision Transformers in Medical Imaging",
-         "Comprehensive survey of ViT applications to radiology."),
-        ("[redacted title]",
-         "[redacted summary]"),
-        ("Text-to-Music Generation at Scale",
-         "Scaling laws for music generation models."),
-        ("[redacted title]",
-         "[redacted summary]"),
-        ("An Empirical Survey of Data Augmentation",
-         "A survey of augmentation strategies across modalities."),
+        ("SQLite adds a built-in vector search extension",
+         "The embedded database gains native approximate nearest-neighbor search."),
+        ("The top 15 cloud trends to watch this year",
+         "An analyst roundup forecasting the year's dominant cloud themes."),
+        ("Go 1.24 introduces generic type aliases",
+         "The release lets developers alias generic types, cutting boilerplate."),
+        ("Celebrity launches a new weekly podcast network",
+         "An entertainment figure announced a slate of shows and a hosting deal."),
+        ("Best noise-cancelling headphones, ranked for the season",
+         "A consumer buying guide rating the latest over-ear headphones."),
+        ("A survey of frontend framework popularity",
+         "A broad survey aggregating developer-poll data across web frameworks."),
     ],
 }
 
 TRIAGE_PROMPT = """\
-You triage research papers for one specific user.
+You triage tech-news stories for one specific reader.
 
-What you remember about this user (from long-term memory, may be empty):
+What you remember about this reader (from long-term memory, may be empty):
 {memories}
 
-Paper: {title}
-Abstract: {abstract}
+Story: {title}
+Summary: {abstract}
 
-Decide for THIS user: if any remembered interest plausibly matches the paper's
-topic, prefer IMPORTANT; if the paper matches something the user ignores,
-prefer SKIP. With no memories, judge by general novelty.
+Match at the level of TOPIC or DOMAIN, not exact products: a remembered interest
+in database performance covers any database-internals story (including a new
+database feature); an interest in one programming language or developer tool
+covers other language and tooling stories. If any remembered interest matches
+the story's domain, answer IMPORTANT. If it matches something the reader ignores
+(roundups, listicles, surveys, off-topic consumer news), answer SKIP. With no
+memories, judge by general newsworthiness.
 Reply in exactly this format (two lines):
 VERDICT: IMPORTANT or SKIP
 REASON: one short sentence"""
@@ -147,7 +156,7 @@ def feedback(day: int, paper: int, verdict: str) -> None:
     title, abstract = PAPERS[day][paper - 1]
     eng.write_episodic(
         OWNER,
-        f"User marked the paper '{title}' as {verdict}. (Abstract: {abstract[:120]})",
+        f"Reader marked the story '{title}' as {verdict}. (Summary: {abstract[:120]})",
         tags=f"feedback,{verdict}",
     )
     print(f"recorded: paper {paper} -> {verdict}")
