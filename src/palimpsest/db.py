@@ -27,7 +27,13 @@ def session() -> Iterator[psycopg.Cursor]:
 
 
 def apply_schema(conn: psycopg.Connection | None = None) -> None:
-    """Apply db/schema.sql (idempotent — everything is IF NOT EXISTS)."""
+    """Apply db/schema.sql (idempotent — everything is IF NOT EXISTS).
+
+    If the schema file isn't bundled (e.g. a serverless deploy that ships only
+    the Python sources), assume the cluster is already provisioned and skip.
+    """
+    if not SCHEMA_FILE.is_file():
+        return
     sql = SCHEMA_FILE.read_text(encoding="utf-8")
     own = conn is None
     conn = conn or connect()
