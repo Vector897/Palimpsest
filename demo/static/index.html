@@ -101,6 +101,7 @@
       <button id="run2">Run Day 2</button>
       <button id="crash" class="danger" title="Kill the agent after 2 stories, mid-task">Run Day 2 + crash</button>
       <button id="night" class="secondary" title="Same code path as the AWS Lambda">Nightly consolidation</button>
+      <button id="reset" class="secondary" title="Wipe this demo's memory and start fresh">Reset demo</button>
     </div>
     <p id="crashBanner" class="banner crash hidden">✕ Agent killed mid-run — memory &amp; progress are safe in CockroachDB. Run Day 2 again to recover.</p>
     <p id="recoverBanner" class="banner recover hidden"></p>
@@ -211,6 +212,15 @@ $('#night').onclick = async () => {
   const r = await api('/api/night', {method:'POST'});
   status(null); refresh();
   alert('Nightly consolidation done: ' + JSON.stringify(r));
+};
+$('#reset').onclick = async () => {
+  if (!confirm('Wipe this demo’s memory and start from a clean slate?')) return;
+  status('Resetting…');
+  await api('/api/reset', {method:'POST'});
+  currentDay = null;
+  $('#crashBanner').classList.add('hidden'); $('#recoverBanner').classList.add('hidden');
+  $('#papers').innerHTML = '<p class="empty">Clean slate. Run Day 1 to watch the agent triage with no memory.</p>';
+  status(null); refresh();
 };
 
 async function showLayers(id){

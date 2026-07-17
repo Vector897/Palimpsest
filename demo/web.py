@@ -137,6 +137,18 @@ def night() -> JSONResponse:
     return JSONResponse(nightly())
 
 
+@app.post("/api/reset")
+def reset() -> JSONResponse:
+    """Wipe this demo's memory so the story can be walked from a clean slate."""
+    e = eng()
+    counts = {}
+    for table in ("memories", "checkpoints", "audit_log"):
+        counts[table] = e.conn.execute(
+            f"DELETE FROM {table} WHERE owner_id = %s", (OWNER,)
+        ).rowcount
+    return JSONResponse({"reset": True, "deleted": counts})
+
+
 @app.get("/api/layers/{memory_id}")
 def layers(memory_id: str) -> JSONResponse:
     return JSONResponse(eng().layers(memory_id))
