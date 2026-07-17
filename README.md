@@ -27,9 +27,38 @@ Built for the [CockroachDB × AWS Hackathon](https://cockroachdb-ai.devpost.com/
  Amazon Bedrock ── Titan embeddings + LLM for consolidation
 ```
 
+## Quickstart
+
+```bash
+pip install -e .
+# put your CockroachDB URI in a .crdb-connection file (or set PALIMPSEST_DB_URL)
+python tests/smoke_e2e.py          # live end-to-end check
+python demo/triage_agent.py --help # the demo agent
+```
+
+Plug any MCP-capable agent in:
+
+```json
+{ "mcpServers": { "palimpsest": {
+    "command": "palimpsest-mcp",
+    "env": { "PALIMPSEST_OWNER": "my-agent" } } } }
+```
+
+## CockroachDB & AWS tooling used
+
+| Tool | How Palimpsest uses it |
+|---|---|
+| **Distributed vector index** | `CREATE VECTOR INDEX (owner_id, embedding vector_cosine_ops)` — prefix-filtered cosine ANN powers all semantic retrieval ([schema](db/schema.sql)) |
+| **CockroachDB Cloud managed MCP** | The developing agent introspects the memory store (schemas, indexes, analytics) through Cockroach Labs' hosted MCP endpoint, read-only OAuth |
+| **Agent Skills** | Patterns from this project contributed upstream: [cockroachlabs/cockroachdb-skills#17](https://github.com/cockroachlabs/cockroachdb-skills/pull/17) (`designing-agent-memory-schemas`) |
+| **Amazon Bedrock** | Titan Text Embeddings V2 (1024-dim) for all embeddings; Nova/Claude for consolidation & arbitration (provider-switchable via `PALIMPSEST_LLM_MODEL`) |
+| **AWS Lambda + EventBridge** | Nightly consolidation job ([handler](src/palimpsest/adapters/lambda_consolidate.py)) — the demo's `night` command runs the identical code path |
+
 ## Status
 
 Work in progress — hackathon submission period (June 30 – Aug 18, 2026).
+Core engine, MCP server, demo agent, and live end-to-end tests are complete;
+Lambda deployment and the hosted demo are in progress.
 
 ## Provenance disclosure
 
