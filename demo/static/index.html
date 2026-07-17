@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Palimpsest — agent memory that survives</title>
+<style>
+  :root {
+    --parchment: #f4efe3;
+    --parchment-deep: #eae2cf;
+    --ink: #241f18;
+    --ink-soft: #5d5344;
+    --rust: #a34a24;
+    --rust-soft: #c97a52;
+    --moss: #4a5d3a;
+    --line: #d8cdb4;
+    --card: #fbf8f0;
+    --shadow: 0 1px 2px rgba(36,31,24,.08), 0 4px 14px rgba(36,31,24,.07);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--parchment); color: var(--ink);
+    font: 16px/1.55 Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+  }
+  header {
+    padding: 28px 32px 20px; border-bottom: 2px solid var(--ink);
+    display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap;
+  }
+  h1 { margin: 0; font-size: 34px; letter-spacing: .5px; font-weight: 600; }
+  h1 .layers { color: var(--rust); }
+  header p { margin: 0; color: var(--ink-soft); font-style: italic; }
+  main { display: grid; grid-template-columns: minmax(420px, 3fr) minmax(360px, 2fr); gap: 24px; padding: 24px 32px 48px; max-width: 1280px; margin: 0 auto; }
+  @media (max-width: 900px){ main { grid-template-columns: 1fr; } }
+
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow); }
+  section > h2 {
+    margin: 0; padding: 14px 18px; font-size: 15px; letter-spacing: .12em;
+    text-transform: uppercase; border-bottom: 1px solid var(--line);
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-weight: 600; color: var(--ink-soft);
+  }
+  .pad { padding: 16px 18px; }
+
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; padding: 14px 18px; border-bottom: 1px solid var(--line); background: var(--parchment-deep); border-radius: 6px 6px 0 0;}
+  button {
+    font: 600 14px Georgia, serif; color: var(--card); background: var(--ink);
+    border: none; border-radius: 4px; padding: 9px 15px; cursor: pointer;
+  }
+  button.secondary { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+  button.danger { background: var(--rust); }
+  button:disabled { opacity: .45; cursor: wait; }
+  button:focus-visible { outline: 3px solid var(--rust-soft); outline-offset: 2px; }
+
+  .paper { display: grid; grid-template-columns: 96px 1fr auto; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--line); align-items: start; }
+  .paper:last-child { border-bottom: none; }
+  .chip {
+    font: 700 11px/1 ui-monospace, Consolas, monospace; letter-spacing: .08em;
+    padding: 6px 8px; border-radius: 3px; text-align: center; margin-top: 3px;
+  }
+  .chip.imp { background: var(--rust); color: var(--card); }
+  .chip.skip { background: var(--parchment-deep); color: var(--ink-soft); border: 1px solid var(--line); }
+  .chip.wait { background: transparent; color: var(--ink-soft); border: 1px dashed var(--line); }
+  .paper h3 { margin: 0 0 2px; font-size: 16px; font-weight: 600; }
+  .paper .reason { margin: 2px 0 0; color: var(--moss); font-size: 14px; font-style: italic; }
+  .paper .mems { margin: 4px 0 0; color: var(--ink-soft); font-size: 12.5px; }
+  .fb { display: flex; gap: 6px; }
+  .fb button { padding: 5px 9px; font-size: 12px; }
+
+  .banner { margin: 0; padding: 12px 18px; font-weight: 600; border-bottom: 1px solid var(--line); }
+  .banner.crash { background: #f6e3da; color: var(--rust); }
+  .banner.recover { background: #e6ecdd; color: var(--moss); }
+  .hidden { display: none; }
+
+  .mem { padding: 12px 18px; border-bottom: 1px solid var(--line); }
+  .mem:last-child { border-bottom: none; }
+  .mem .meta { font: 11.5px ui-monospace, Consolas, monospace; color: var(--ink-soft); margin-top: 4px; display:flex; gap:14px; flex-wrap:wrap;}
+  .mem.reconciled { border-left: 4px solid var(--rust); padding-left: 14px; }
+  .mem a { color: var(--rust); cursor: pointer; text-decoration: underline dotted; }
+  .layerstack { margin: 10px 0 0; padding: 0; list-style: none; }
+  .layerstack li { padding: 8px 12px; border: 1px solid var(--line); border-radius: 4px; margin: 0 0 6px 14px; background: var(--parchment-deep); font-size: 14px; }
+  .layerstack li.live { background: var(--card); border-left: 4px solid var(--rust); margin-left: 0; }
+  .layerstack .when { font: 11px ui-monospace, Consolas, monospace; color: var(--ink-soft); display:block; }
+  .empty { padding: 24px 18px; color: var(--ink-soft); font-style: italic; }
+  .audit { font: 12.5px ui-monospace, Consolas, monospace; }
+  .audit .mem { padding: 7px 18px; }
+  #status { position: fixed; right: 20px; bottom: 20px; background: var(--ink); color: var(--card); padding: 10px 16px; border-radius: 5px; box-shadow: var(--shadow); }
+  footer { text-align:center; color: var(--ink-soft); font-size: 13px; padding: 0 0 30px; }
+  footer code { font-family: ui-monospace, Consolas, monospace; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Palimpsest <span class="layers">≣</span></h1>
+  <p>agent memory that survives — new knowledge layers over old, history never destroyed · CockroachDB × AWS</p>
+</header>
+
+<main>
+  <section id="briefing">
+    <h2>Morning briefing — paper triage</h2>
+    <div class="toolbar">
+      <button id="run1">Run Day 1</button>
+      <button id="run2">Run Day 2</button>
+      <button id="crash" class="danger" title="Kill the agent after 2 papers, mid-task">Run Day 2 + crash</button>
+      <button id="night" class="secondary" title="Same code path as the AWS Lambda">Nightly consolidation</button>
+    </div>
+    <p id="crashBanner" class="banner crash hidden">✕ Agent killed mid-run — memory &amp; progress are safe in CockroachDB. Run Day 2 again to recover.</p>
+    <p id="recoverBanner" class="banner recover hidden"></p>
+    <div id="papers"><p class="empty">Choose a day to triage. Day 1 runs with no memory; give feedback, consolidate, then watch Day 2 change.</p></div>
+  </section>
+
+  <div style="display:flex; flex-direction:column; gap:24px;">
+    <section>
+      <h2>Long-term memory (semantic)</h2>
+      <div id="semantic"><p class="empty">Nothing consolidated yet.</p></div>
+    </section>
+    <section>
+      <h2>Recent episodes</h2>
+      <div id="episodic"><p class="empty">No episodes recorded.</p></div>
+    </section>
+    <section class="audit">
+      <h2>Audit trail</h2>
+      <div id="audit"><p class="empty">—</p></div>
+    </section>
+  </div>
+</main>
+<footer>every byte lives in a CockroachDB Cloud cluster · embeddings &amp; LLM via Amazon Bedrock · <code>github.com/Vector897/Palimpsest</code></footer>
+<div id="status" class="hidden"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let PAPERS = {}, currentDay = null;
+
+function status(msg){ const el=$('#status'); if(!msg){el.classList.add('hidden');return;} el.textContent=msg; el.classList.remove('hidden'); }
+async function api(path, opts){ const r = await fetch(path, opts); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+
+function paperRow(i, p, decision){
+  const d = decision;
+  const chip = d ? (d.verdict==='IMPORTANT' ? '<div class="chip imp">★ IMPORTANT</div>' : '<div class="chip skip">skip</div>')
+                 : '<div class="chip wait">…</div>';
+  const reason = d && d.reason ? `<p class="reason">${d.reason}</p>` : '';
+  const mems = d && d.memories_used && d.memories_used.length
+    ? `<p class="mems">recalled: ${d.memories_used.map(m=>'“'+m.slice(0,70)+'…”').join(' · ')}</p>` : '';
+  return `<div class="paper">
+    ${chip}
+    <div><h3>${i+1}. ${p.title}</h3><p class="reason" style="color:var(--ink-soft)">${p.abstract}</p>${reason}${mems}</div>
+    <div class="fb">
+      <button class="secondary" onclick="sendFeedback(${i+1},'important')">important</button>
+      <button class="secondary" onclick="sendFeedback(${i+1},'ignore')">ignore</button>
+    </div>
+  </div>`;
+}
+
+function renderPapers(day, decisions){
+  currentDay = day;
+  const list = PAPERS[day] || [];
+  const byIdx = {}; (decisions||[]).forEach(d => byIdx[d.paper-1]=d);
+  $('#papers').innerHTML = list.map((p,i)=>paperRow(i,p,byIdx[i])).join('');
+}
+
+async function refresh(){
+  const s = await api('/api/state');
+  PAPERS = s.papers;
+  const sem = $('#semantic');
+  sem.innerHTML = s.semantic.length ? s.semantic.map(m=>`
+    <div class="mem ${m.reconciled?'reconciled':''}" id="mem-${m.id}">
+      ${m.content}
+      <div class="meta"><span>confidence ${m.confidence.toFixed(2)}</span><span>heat ${m.heat}</span>
+      ${m.reconciled?`<a onclick="showLayers('${m.id}')">show layers ≣</a>`:''}</div>
+    </div>`).join('') : '<p class="empty">Nothing consolidated yet.</p>';
+  $('#episodic').innerHTML = s.episodic.length ? s.episodic.map(e=>`
+    <div class="mem">${e.content}<div class="meta"><span>${e.at.slice(0,19).replace('T',' ')}</span></div></div>`).join('')
+    : '<p class="empty">No episodes recorded.</p>';
+  $('#audit').innerHTML = s.audit.length ? s.audit.map(a=>`
+    <div class="mem">${a.at.slice(11,19)} ${a.action} ${JSON.stringify(a.detail)}</div>`).join('') : '<p class="empty">—</p>';
+  if (currentDay && s.days[currentDay]) renderPapers(currentDay, s.days[currentDay].decisions);
+}
+
+async function runMorning(day, crashAfter){
+  document.querySelectorAll('.toolbar button').forEach(b=>b.disabled=true);
+  $('#crashBanner').classList.add('hidden'); $('#recoverBanner').classList.add('hidden');
+  renderPapers(day, []);
+  status(crashAfter?'Triaging… (will crash mid-run)':'Triaging with real embeddings + Bedrock LLM…');
+  try {
+    const r = await api('/api/morning', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({day, crash_after: crashAfter ?? null})});
+    renderPapers(day, r.decisions);
+    if (r.crashed) $('#crashBanner').classList.remove('hidden');
+    if (r.recovered){
+      const b=$('#recoverBanner');
+      b.textContent = `✓ Recovered from checkpoint — resumed at paper ${r.resumed_at}; earlier decisions loaded from CockroachDB, no tokens re-spent.`;
+      b.classList.remove('hidden');
+    }
+  } finally {
+    document.querySelectorAll('.toolbar button').forEach(b=>b.disabled=false);
+    status(null); refresh();
+  }
+}
+
+async function sendFeedback(paper, verdict){
+  if(!currentDay) return;
+  status('Recording feedback…');
+  await api('/api/feedback', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({day: currentDay, paper, verdict})});
+  status(null); refresh();
+}
+
+$('#run1').onclick = () => runMorning(1);
+$('#run2').onclick = () => runMorning(2);
+$('#crash').onclick = () => runMorning(2, 2);
+$('#night').onclick = async () => {
+  status('Consolidating (Lambda code path)…');
+  const r = await api('/api/night', {method:'POST'});
+  status(null); refresh();
+  alert('Nightly consolidation done: ' + JSON.stringify(r));
+};
+
+async function showLayers(id){
+  const chain = await api('/api/layers/'+id);
+  const host = document.getElementById('mem-'+id);
+  const old = host.querySelector('.layerstack'); if(old){old.remove();return;}
+  const ul = document.createElement('ul'); ul.className='layerstack';
+  ul.innerHTML = chain.map((l,i)=>`<li class="${i===0?'live':''}">
+    <span class="when">${i===0?'current layer':'superseded layer'} · ${l.created_at.slice(0,19).replace('T',' ')}</span>${l.content}</li>`).join('');
+  host.appendChild(ul);
+}
+
+refresh();
+</script>
+</body>
+</html>

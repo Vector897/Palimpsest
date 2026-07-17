@@ -19,6 +19,7 @@ palimpsest-mcp = "palimpsest.mcp.server:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.5"]
+demo = ["fastapi>=0.110", "uvicorn>=0.29"]
 
 [build-system]
 requires = ["hatchling"]

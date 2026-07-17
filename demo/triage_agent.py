@@ -84,6 +84,28 @@ def _engine() -> MemoryEngine:
     return MemoryEngine(conn)
 
 
+def triage_paper(eng: MemoryEngine, title: str, abstract: str) -> dict:
+    """Triage one paper against the agent's semantic memory. Shared by CLI and web demo."""
+    hits = eng.retrieve(OWNER, f"{title}. {abstract}", limit=3, kinds=("semantic",))
+    memory_text = "\n".join(f"- {m.content}" for m in hits) or "(no long-term memories yet)"
+    raw = eng.llm.complete(
+        TRIAGE_PROMPT.format(memories=memory_text, title=title, abstract=abstract),
+        max_tokens=100,
+    )
+    lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
+    verdict = "IMPORTANT" if lines and "IMPORTANT" in lines[0].upper() else "SKIP"
+    reason = ""
+    for ln in lines[1:]:
+        if ln.upper().startswith("REASON"):
+            reason = ln.split(":", 1)[-1].strip()
+            break
+    return {
+        "verdict": verdict,
+        "reason": reason,
+        "memories_used": [m.content for m in hits],
+    }
+
+
 def morning(day: int, crash_after: int | None) -> None:
     eng = _engine()
     task_id = f"triage-day{day}"
@@ -102,19 +124,8 @@ def morning(day: int, crash_after: int | None) -> None:
 
     for i in range(start, len(papers)):
         title, abstract = papers[i]
-        hits = eng.retrieve(OWNER, f"{title}. {abstract}", limit=3, kinds=("semantic",))
-        memory_text = "\n".join(f"- {m.content}" for m in hits) or "(no long-term memories yet)"
-        raw = eng.llm.complete(
-            TRIAGE_PROMPT.format(memories=memory_text, title=title, abstract=abstract),
-            max_tokens=100,
-        )
-        lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
-        verdict = "IMPORTANT" if lines and "IMPORTANT" in lines[0].upper() else "SKIP"
-        reason = ""
-        for ln in lines[1:]:
-            if ln.upper().startswith("REASON"):
-                reason = ln.split(":", 1)[-1].strip()
-                break
+        result = triage_paper(eng, title, abstract)
+        verdict, reason = result["verdict"], result["reason"]
         decisions.append({"paper": i + 1, "title": title, "verdict": verdict})
         flag = "★ IMPORTANT" if verdict == "IMPORTANT" else "  skip     "
         print(f"{flag}  {i + 1}. {title}\n             {reason}")
