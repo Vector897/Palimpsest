@@ -24,21 +24,26 @@ def _find_connection_file(start: Path | None = None) -> Path | None:
     return None
 
 
+def _normalize_db_url(url: str) -> str:
+    if sslmode := os.environ.get("PALIMPSEST_DB_SSLMODE"):
+        url = url.replace("sslmode=verify-full", f"sslmode={sslmode}")
+    if "connect_timeout=" not in url:
+        url += ("&" if "?" in url else "?") + "connect_timeout=10"
+    # CockroachDB Cloud serves Let's Encrypt certs; point verify-full at the
+    # certifi bundle (OpenSSL's default store is empty on Windows and varies
+    # across serverless base images).
+    if "sslmode=verify-full" in url and "sslrootcert" not in url:
+        import certifi
+
+        url += "&sslrootcert=" + certifi.where()
+    return url
+
+
 def _resolve_db_url() -> str:
     if url := os.environ.get("PALIMPSEST_DB_URL"):
-        return url
+        return _normalize_db_url(url)
     if f := _find_connection_file():
-        url = f.read_text(encoding="utf-8").strip()
-        if sslmode := os.environ.get("PALIMPSEST_DB_SSLMODE"):
-            url = url.replace("sslmode=verify-full", f"sslmode={sslmode}")
-        url += ("&" if "?" in url else "?") + "connect_timeout=10"
-        # CockroachDB Cloud serves Let's Encrypt certs; full verification works
-        # against the certifi bundle (OpenSSL's default store is empty on Windows)
-        if "sslmode=verify-full" in url and "sslrootcert" not in url:
-            import certifi
-
-            url += "&sslrootcert=" + certifi.where()
-        return url
+        return _normalize_db_url(f.read_text(encoding="utf-8").strip())
     raise RuntimeError(
         "No database URL: set PALIMPSEST_DB_URL or place a .crdb-connection file "
         "in the project directory."

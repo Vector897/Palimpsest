@@ -1,0 +1,5 @@
+# Force Vercel's Python builder to install from requirements.txt (lean, web-only)
+# instead of pyproject.toml (whose main deps include the heavy mcp/anthropic
+# packages the serverless demo does not need).
+pyproject.toml
+tests/
