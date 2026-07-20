@@ -211,7 +211,12 @@ $('#night').onclick = async () => {
   status('Consolidating (Lambda code path)…');
   const r = await api('/api/night', {method:'POST'});
   status(null); refresh();
-  alert('Nightly consolidation done: ' + JSON.stringify(r));
+  const facts = Object.values(r.facts || {}).reduce((a,b)=>a+b, 0);
+  const b = $('#recoverBanner');
+  b.textContent = facts > 0
+    ? `✓ Nightly consolidation distilled ${facts} semantic fact${facts>1?'s':''} — see the memory pane.`
+    : 'Nothing to consolidate: no fresh episodes in the last 24 hours. Run a day, mark a few stories, then consolidate.';
+  b.classList.remove('hidden');
 };
 $('#reset').onclick = async () => {
   if (!confirm('Wipe this demo’s memory and start from a clean slate?')) return;
