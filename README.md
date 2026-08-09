@@ -16,6 +16,10 @@ Built for the [CockroachDB × AWS Hackathon](https://cockroachdb-ai.devpost.com/
 
 ## Architecture
 
+![Palimpsest architecture](architecture.png)
+
+<details><summary>Same diagram as Mermaid (renders on GitHub)</summary>
+
 ```mermaid
 flowchart LR
     subgraph agents [Any MCP-capable agent]
@@ -50,6 +54,8 @@ flowchart LR
     LAM --> ENG
     A1 -. introspects .-> CMCP -.-> crdb
 ```
+
+</details>
 
 ## Quickstart
 
