@@ -215,7 +215,7 @@ $('#night').onclick = async () => {
   const b = $('#recoverBanner');
   b.textContent = facts > 0
     ? `✓ Nightly consolidation distilled ${facts} semantic fact${facts>1?'s':''} — see the memory pane.`
-    : 'Nothing to consolidate: no fresh episodes in the last 24 hours. Run a day, mark a few stories, then consolidate.';
+    : 'No new facts distilled. Consolidation needs at least 3 fresh feedback marks from the last 24h — mark a few stories important/ignore, then try again.';
   b.classList.remove('hidden');
 };
 $('#reset').onclick = async () => {
