@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from fastapi import FastAPI, Request  # noqa: E402
+from fastapi import FastAPI  # noqa: E402
 from fastapi.responses import FileResponse, JSONResponse  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 
@@ -39,22 +39,6 @@ def eng() -> MemoryEngine:
         apply_schema(conn)
         _eng = MemoryEngine(conn)
     return _eng
-
-
-@app.exception_handler(404)
-async def _diag_404(request: Request, exc) -> JSONResponse:
-    # Diagnostic: reveal exactly what path/root the ASGI app received, so we can
-    # tell whether Vercel's rewrite is passing the original path or /api/index.
-    return JSONResponse(
-        {
-            "detail": "Not Found",
-            "received_path": request.url.path,
-            "scope_path": request.scope.get("path"),
-            "root_path": request.scope.get("root_path"),
-            "raw_path": (request.scope.get("raw_path") or b"").decode("latin1", "replace"),
-        },
-        status_code=404,
-    )
 
 
 @app.get("/")
