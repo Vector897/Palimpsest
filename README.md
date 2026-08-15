@@ -104,5 +104,3 @@ retrieval, MCP interface, and AWS-native consolidation. No code is shared.
 ## License
 
 [Apache-2.0](LICENSE)
-
-<!-- redeploy check: 2026-08-15 -->
