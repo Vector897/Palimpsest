@@ -88,9 +88,11 @@ Plug any MCP-capable agent in:
 
 ## Status
 
-Work in progress — hackathon submission period (June 30 – Aug 18, 2026).
-Core engine, MCP server, demo agent, and live end-to-end tests are complete;
-Lambda deployment and the hosted demo are in progress.
+Built during the hackathon submission period (June 30 – Aug 18, 2026).
+Core engine, MCP server, demo agent, live end-to-end tests, and the
+[hosted demo](https://palimpsest-swart.vercel.app) are complete. The
+nightly-consolidation handler is Lambda-ready — the demo's *Nightly
+consolidation* button runs the identical code path.
 
 ## Provenance disclosure
 
