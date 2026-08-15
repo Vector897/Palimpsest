@@ -1,5 +1,7 @@
 # Palimpsest — agent memory that survives, on CockroachDB
 
+**▶ Live demo: [palimpsest-swart.vercel.app](https://palimpsest-swart.vercel.app)** — watch an agent learn a reader's taste, then survive a mid-run crash by resuming from its CockroachDB checkpoint.
+
 > A palimpsest is a manuscript page scraped clean and written over — with the earlier writing still faintly visible beneath.
 > That is how agent memory should work: **new knowledge layers over old, and history is never destroyed.**
 
